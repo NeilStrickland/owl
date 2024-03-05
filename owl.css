@@ -28,9 +28,20 @@ div.control:hover {
 }
 
 div.control_selected {
+    width: 100px;
+    height: 20px;
+    border-radius: 4px;
+    border: 3px solid #F5B041;
+    padding: 4px;
+    margin: 4px;
     background: #FFC051;
 }
             
+div.control_selected:hover { 
+    cursor: pointer;
+    border: 3px solid #E5A031;
+}
+
 td.control {
     width: 100px;
     height: 20px;
@@ -46,9 +57,20 @@ td.control:hover {
 }
 
 td.control_selected {
+    width: 100px;
+    height: 20px;
+    border-radius: 4px;
+    border: 3px solid #F5B041;
+    padding: 4px;
+    margin: 4px;
     background: #FFC051;
 }
             
+td.control_selected:hover { 
+    cursor: pointer;
+    border: 3px solid #E5A031;
+}
+
 table.edged { 
  border-collapse: collapse;
 }
