@@ -1140,6 +1140,9 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
  //////////////////////////////////////////////////////////////////////
  //////////////////////////////////////////////////////////////////////
 
+ owl2.x_transform = function(x) { return x; };
+ owl2.y_transform = function(y) { return y; };
+
  owl2.node = function (t) {
   return document.createElementNS('http://www.w3.org/2000/svg', t);
  };
@@ -1150,10 +1153,10 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
 
  owl2.line = function (x1, y1, x2, y2, color, thickness) {
   var n = this.node('line');
-  n.setAttribute('x1', x1);
-  n.setAttribute('y1', y1);
-  n.setAttribute('x2', x2);
-  n.setAttribute('y2', y2);
+  n.setAttribute('x1', this.x_transform(x1));
+  n.setAttribute('y1', this.y_transform(y1));
+  n.setAttribute('x2', this.x_transform(x2));
+  n.setAttribute('y2', this.y_transform(y2));
   n.setAttribute('stroke', color);
   n.setAttribute('stroke-width', thickness);
   n.setAttribute('fill', 'none');
@@ -1170,10 +1173,14 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
 
  owl2.rect = function(x0,y0,w,h,color,thickness) {
   var n = this.node('rect');
-  n.setAttribute('x', x0);
-  n.setAttribute('y', y0);
-  n.setAttribute('width', w);
-  n.setAttribute('height', h);
+  var x1 = this.x_transform(x0);
+  var y1 = this.y_transform(y0);
+  var x2 = this.x_transform(x0 + w);
+  var y2 = this.y_transform(y0 + h);
+  n.setAttribute('x', Math.min(x1, x2));
+  n.setAttribute('y', Math.min(y1, y2));
+  n.setAttribute('width', Math.abs(x2-x1));
+  n.setAttribute('height', Math.abs(y2-y1));
   n.setAttribute('stroke',color);
   n.setAttribute('stroke-width', thickness);
   n.setAttribute('fill', 'none');
@@ -1182,10 +1189,14 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
 
  owl2.frect = function(x0,y0,w,h,color) {
   var n = this.node('rect');
-  n.setAttribute('x', x0);
-  n.setAttribute('y', y0);
-  n.setAttribute('width', w);
-  n.setAttribute('height', h);
+  var x1 = this.x_transform(x0);
+  var y1 = this.y_transform(y0);
+  var x2 = this.x_transform(x0 + w);
+  var y2 = this.y_transform(y0 + h);
+  n.setAttribute('x', Math.min(x1, x2));
+  n.setAttribute('y', Math.min(y1, y2));
+  n.setAttribute('width', Math.abs(x2-x1));
+  n.setAttribute('height', Math.abs(y2-y1));
   n.setAttribute('stroke','none');
   n.setAttribute('fill', color);
   return n
@@ -1197,11 +1208,11 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
   point_strings = [];
   for (i in points) {
    u = points[i];
-   if (Array.isArray(u)) {
-    point_strings.push('' + u[0] + ',' + u[1]);
-   } else {
-    point_strings.push('' + u.x + ',' + u.y);   
+   if (! Array.isArray(u)) {
+    u = [u.x,u.y]
    }
+   u = [this.x_transform(u[0]),this.y_transform(u[1])];
+   point_strings.push('' + u[0] + ',' + u[1]);
   }
 
   s = 'M ' + point_strings[0] + ' L ';
@@ -1240,9 +1251,9 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
 
  owl2.circle = function(x0,y0,r,color,thickness) {
   var n = this.node('circle');
-  n.setAttribute('cx', x0);
-  n.setAttribute('cy', y0);
-  n.setAttribute('r', r);
+  n.setAttribute('cx', this.x_transform(x0));
+  n.setAttribute('cy', this.y_transform(y0));
+  n.setAttribute('r', this.x_transform(r) - this.x_transform(0));
   n.setAttribute('stroke', color);
   n.setAttribute('stroke-width',thickness);
   n.setAttribute('fill', 'none');
@@ -1251,9 +1262,9 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
 
  owl2.disc = function(x0,y0,r,color) {
   var n = this.node('circle');
-  n.setAttribute('cx', x0);
-  n.setAttribute('cy', y0);
-  n.setAttribute('r', r);
+  n.setAttribute('cx', this.x_transform(x0));
+  n.setAttribute('cy', this.y_transform(y0));
+  n.setAttribute('r', this.x_transform(r) - this.x_transform(0));
   n.setAttribute('stroke','none');
   n.setAttribute('fill', color);
   return n
@@ -1265,8 +1276,8 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
   n.setAttribute('alignment-baseline','middle');
   n.setAttribute('font-size','24px');
   n.setAttribute('fill','black');
-  n.setAttribute('x', x);
-  n.setAttribute('y', y);
+  n.setAttribute('x', this.x_transform(x));
+  n.setAttribute('y', this.y_transform(y));
   n.textContent = s;
   return n; 
  };
@@ -1278,8 +1289,8 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
   n.setAttribute('font-size','24px');
   n.setAttribute('font-family',comb.math_font);
   n.setAttribute('fill','black');
-  n.setAttribute('x', x);
-  n.setAttribute('y', y);
+  n.setAttribute('x', this.x_transform(x));
+  n.setAttribute('y', this.y_transform(y));
   n.setAttribute('pointer-events','none');
   n.textContent = s;
   return n; 
@@ -1352,7 +1363,15 @@ define(['babylonjs','vec'],function(BABYLON,vec) {
 
  owl.demo.set_msg = function(s) {
   this.msg_div.innerHTML = s;
-  MathJax.Hub.Queue(['Typeset',MathJax.Hub,this.msg_div]);
+  if (MathJax) {
+   if (MathJax.Hub) {
+    // Older MathJax
+    MathJax.Hub.Queue(['Typeset',MathJax.Hub,this.msg_div]);
+   } else {
+    // Newer MathJax
+    MathJax.typeset(this.msg_div);
+   }
+  }
  };
 
  return owl;
